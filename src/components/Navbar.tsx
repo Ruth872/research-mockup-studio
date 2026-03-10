@@ -1,17 +1,27 @@
 import { Link, useLocation } from "react-router-dom";
-import { Activity, Menu, X } from "lucide-react";
+import { Activity, Menu, X, LogIn, User, LogOut } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
-const navLinks = [
+const publicLinks = [
   { to: "/", label: "Home" },
   { to: "/triage", label: "Symptom Checker" },
+  { to: "/chat", label: "AI Chat" },
   { to: "/dashboard", label: "Analytics" },
 ];
 
 const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isAuthenticated, userType, user, logout } = useAuth();
+
+  const displayName = userType === "staff"
+    ? (user as any)?.first_name
+    : (user as any)?.name?.split(" ")[0];
+
+  const portalLink = userType === "staff" ? "/staff/dashboard" : "/patient/portal";
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-lg">
@@ -27,7 +37,7 @@ const Navbar = () => {
 
         {/* Desktop */}
         <div className="hidden items-center gap-1 md:flex">
-          {navLinks.map((link) => (
+          {publicLinks.map((link) => (
             <Link
               key={link.to}
               to={link.to}
@@ -40,13 +50,36 @@ const Navbar = () => {
               {link.label}
             </Link>
           ))}
+
+          <div className="ml-3 border-l border-border pl-3">
+            {isAuthenticated ? (
+              <div className="flex items-center gap-2">
+                <Link to={portalLink}>
+                  <Button variant="ghost" size="sm">
+                    <User className="mr-1.5 h-4 w-4" /> {displayName}
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={logout}>
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link to="/staff/login">
+                  <Button variant="ghost" size="sm">
+                    <LogIn className="mr-1.5 h-4 w-4" /> Staff
+                  </Button>
+                </Link>
+                <Link to="/patient/login">
+                  <Button variant="outline" size="sm">Patient Portal</Button>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile toggle */}
-        <button
-          className="md:hidden text-foreground"
-          onClick={() => setMobileOpen(!mobileOpen)}
-        >
+        <button className="md:hidden text-foreground" onClick={() => setMobileOpen(!mobileOpen)}>
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
@@ -61,7 +94,7 @@ const Navbar = () => {
             className="overflow-hidden border-t border-border md:hidden"
           >
             <div className="flex flex-col gap-1 px-6 py-4">
-              {navLinks.map((link) => (
+              {publicLinks.map((link) => (
                 <Link
                   key={link.to}
                   to={link.to}
@@ -75,6 +108,31 @@ const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
+              <div className="mt-2 border-t border-border pt-2">
+                {isAuthenticated ? (
+                  <>
+                    <Link to={portalLink} onClick={() => setMobileOpen(false)}
+                      className="block rounded-lg px-4 py-3 text-sm font-medium text-foreground">
+                      My Dashboard
+                    </Link>
+                    <button onClick={() => { logout(); setMobileOpen(false); }}
+                      className="block w-full rounded-lg px-4 py-3 text-left text-sm font-medium text-destructive">
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/staff/login" onClick={() => setMobileOpen(false)}
+                      className="block rounded-lg px-4 py-3 text-sm font-medium text-foreground">
+                      Staff Login
+                    </Link>
+                    <Link to="/patient/login" onClick={() => setMobileOpen(false)}
+                      className="block rounded-lg px-4 py-3 text-sm font-medium text-primary">
+                      Patient Portal
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
