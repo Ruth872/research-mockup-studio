@@ -9,6 +9,9 @@ const apiTarget = `http://127.0.0.1:${process.env.API_PORT || "8010"}`;
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  // The folder the built app is served from. GitHub Pages serves a project site from
+  // /<repository>/, so the Pages build sets VITE_BASE=/research-mockup-studio/.
+  base: process.env.VITE_BASE || "/",
   server: {
     // Listen on this machine only. Set VITE_DEV_HOST=0.0.0.0 to reach the dev
     // server from another device on a trusted network.
